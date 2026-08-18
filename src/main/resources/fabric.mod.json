@@ -1,0 +1,20 @@
+{
+	"schemaVersion": 1,
+	"id": "doumi",
+	"version": "${version}",
+	"name": "Doumi",
+	"description": "",
+	"authors": [],
+	"contact": {},
+	"license": "All-Rights-Reserved",
+	"icon": "assets/doumi/icon.png",
+	"environment": "client",
+	"entrypoints": {},
+	"mixins": [
+		"doumi.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19",
+		"minecraft": ">=26.1 <=26.2"
+	}
+}
