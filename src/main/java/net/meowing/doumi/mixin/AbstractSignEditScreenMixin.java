@@ -32,6 +32,7 @@ public class AbstractSignEditScreenMixin {
 	private String[] messages;
 	@Shadow
 	private int line;
+	@Final
 	@Shadow
 	private TextFieldHelper signField;
 
