@@ -16,9 +16,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MultiLineEditBox.class)
 public class MultiLineEditBoxMixin {
 	@Unique
-	private PreeditEvent doumi$preeditEvent;
+	private String doumi$preeditText = null;
 	@Unique
-	private String doumi$prevValue;
+	private int doumi$preeditPos = -1;
+	@Unique
+	private String doumi$prevValue = null;
 	@Unique
 	private int doumi$prevCursor = -1;
 	@Unique
@@ -30,12 +32,24 @@ public class MultiLineEditBoxMixin {
 
 	@Inject(method = "preeditUpdated", at = @At("HEAD"))
 	private void updatePreedit(PreeditEvent event, CallbackInfoReturnable<Boolean> cir) {
-		doumi$preeditEvent = event;
+		if (event == null) {
+			doumi$preeditText = null;
+			return;
+		}
+		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
+		String value = textFieldAccessor.doumi$getValue();
+		int cursor = textFieldAccessor.doumi$getCursor();
+		int selectCursor = textFieldAccessor.doumi$getSelectCursor();
+		int minPos = Math.min(cursor, selectCursor);
+		int maxPos = Math.max(cursor, selectCursor);
+		String formatted = new StringBuilder(event.fullText()).insert(event.caretPosition(), "§n").insert(0, "§n").append("§r").toString();
+		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, formatted).toString();
+		doumi$preeditPos = event.caretPosition() + minPos + 2;
 	}
 
 	@Inject(method = "extractContents", at = @At("HEAD"))
 	private void renderHead(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-		if (doumi$preeditEvent == null) return;
+		if (doumi$preeditText == null) return;
 		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
 		String value = textFieldAccessor.doumi$getValue();
 		int cursor = textFieldAccessor.doumi$getCursor();
@@ -43,13 +57,9 @@ public class MultiLineEditBoxMixin {
 		doumi$prevValue = value;
 		doumi$prevCursor = cursor;
 		doumi$prevSelectCursor = selectCursor;
-		int minPos = Math.min(cursor, selectCursor);
-		int maxPos = Math.max(cursor, selectCursor);
-		int pos = doumi$preeditEvent.caretPosition() + minPos + 2;
-		String formatted = new StringBuilder(doumi$preeditEvent.fullText()).insert(doumi$preeditEvent.caretPosition(), "§n").insert(0, "§n").append("§r").toString();
-		textFieldAccessor.doumi$setValue(new StringBuilder(value).replace(minPos, maxPos, formatted).toString());
-		textFieldAccessor.doumi$setCursor(pos);
-		textFieldAccessor.doumi$setSelectCursor(pos);
+		textFieldAccessor.doumi$setValue(doumi$preeditText);
+		textFieldAccessor.doumi$setCursor(doumi$preeditPos);
+		textFieldAccessor.doumi$setSelectCursor(doumi$preeditPos);
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
 	}
 

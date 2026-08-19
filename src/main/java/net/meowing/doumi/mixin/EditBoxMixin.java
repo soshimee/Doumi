@@ -18,9 +18,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EditBox.class)
 public abstract class EditBoxMixin {
 	@Unique
-	private PreeditEvent doumi$preeditEvent;
+	private String doumi$preeditText = null;
 	@Unique
-	private String doumi$prevValue;
+	private int doumi$preeditPos = -1;
+	@Unique
+	private String doumi$prevValue = null;
 	@Unique
 	private int doumi$prevCursorPos = -1;
 	@Unique
@@ -43,26 +45,27 @@ public abstract class EditBoxMixin {
 	@Inject(method = "preeditUpdated", at = @At("HEAD"))
 	private void updatePreedit(PreeditEvent event, CallbackInfoReturnable<Boolean> cir) {
 		if (event == null) {
-			doumi$preeditStart = -1;
+			doumi$preeditText = null;
+			return;
 		}
-		doumi$preeditEvent = event;
+		int minPos = Math.min(cursorPos, highlightPos);
+		int maxPos = Math.max(cursorPos, highlightPos);
+		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, event.fullText()).toString();
+		doumi$preeditPos = Math.min(cursorPos, highlightPos) + event.caretPosition();
+		doumi$preeditStart = minPos;
+		doumi$preeditEnd = minPos + event.fullText().length();
 	}
 
 	@Inject(method = "extractWidgetRenderState", at = @At("HEAD"))
 	private void renderHead(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-		if (doumi$preeditEvent == null) return;
+		if (doumi$preeditText == null) return;
 		doumi$prevValue = value;
 		doumi$prevCursorPos = cursorPos;
 		doumi$prevHighlightPos = highlightPos;
-		int minPos = Math.min(cursorPos, highlightPos);
-		int maxPos = Math.max(cursorPos, highlightPos);
-		int pos = doumi$preeditEvent.caretPosition() + minPos;
-		value = new StringBuilder(value).replace(minPos, maxPos, doumi$preeditEvent.fullText()).toString();
-		cursorPos = pos;
-		highlightPos = pos;
-		scrollTo(pos);
-		doumi$preeditStart = minPos;
-		doumi$preeditEnd = minPos + doumi$preeditEvent.fullText().length();
+		value = doumi$preeditText;
+		cursorPos = doumi$preeditPos;
+		highlightPos = doumi$preeditPos;
+		scrollTo(doumi$preeditPos);
 	}
 
 	@Inject(method = "extractWidgetRenderState", at = @At("TAIL"))
@@ -77,7 +80,7 @@ public abstract class EditBoxMixin {
 	@WrapOperation(method = "extractWidgetRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;applyFormat(Ljava/lang/String;I)Lnet/minecraft/util/FormattedCharSequence;"))
 	private FormattedCharSequence renderUnderline(EditBox instance, String text, int offset, Operation<FormattedCharSequence> original) {
 		FormattedCharSequence baseSequence = original.call(instance, text, offset);
-		if (doumi$preeditStart < 0) return baseSequence;
+		if (doumi$preeditText == null) return baseSequence;
 		int textLength = text.length();
 		int segmentEnd = offset + textLength;
 		if (segmentEnd <= doumi$preeditStart || offset >= doumi$preeditEnd) return baseSequence;
