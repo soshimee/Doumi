@@ -6,7 +6,7 @@
 	"description": "",
 	"authors": [],
 	"contact": {},
-	"license": "All-Rights-Reserved",
+	"license": "GPL-3.0-or-later",
 	"icon": "assets/doumi/icon.png",
 	"environment": "client",
 	"entrypoints": {},
