@@ -85,8 +85,9 @@ public abstract class EditBoxMixin {
 		int segmentEnd = offset + textLength;
 		if (segmentEnd <= doumi$preeditStart || offset >= doumi$preeditEnd) return baseSequence;
 		Style styleModifier = Style.EMPTY.withUnderlined(true);
+		int[] index = new int[] {0};
 		return (sink) -> baseSequence.accept((charIndex, currentStyle, codePoint) -> {
-			int globalIndex = offset + charIndex;
+			int globalIndex = offset + index[0]++;
 			Style finalStyle = (globalIndex >= doumi$preeditStart && globalIndex < doumi$preeditEnd)
 				? currentStyle.applyTo(styleModifier)
 				: currentStyle;
