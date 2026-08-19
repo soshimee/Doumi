@@ -68,8 +68,8 @@ public abstract class EditBoxMixin {
 		scrollTo(doumi$preeditPos);
 	}
 
-	@Inject(method = "extractWidgetRenderState", at = @At("TAIL"))
-	private void renderTail(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+	@Inject(method = "extractWidgetRenderState", at = @At("RETURN"))
+	private void renderReturn(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
 		if (doumi$prevValue == null) return;
 		value = doumi$prevValue;
 		cursorPos = doumi$prevCursorPos;
@@ -78,7 +78,7 @@ public abstract class EditBoxMixin {
 	}
 
 	@WrapOperation(method = "extractWidgetRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;applyFormat(Ljava/lang/String;I)Lnet/minecraft/util/FormattedCharSequence;"))
-	private FormattedCharSequence renderUnderline(EditBox instance, String text, int offset, Operation<FormattedCharSequence> original) {
+	private FormattedCharSequence renderStyle(EditBox instance, String text, int offset, Operation<FormattedCharSequence> original) {
 		FormattedCharSequence baseSequence = original.call(instance, text, offset);
 		if (doumi$preeditText == null) return baseSequence;
 		int textLength = text.length();

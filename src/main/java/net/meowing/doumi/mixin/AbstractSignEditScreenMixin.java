@@ -67,8 +67,8 @@ public class AbstractSignEditScreenMixin {
 		signFieldAccessor.doumi$setSelectionPos(doumi$preeditPos);
 	}
 
-	@Inject(method = "extractSignText", at = @At("TAIL"))
-	private void renderTail(GuiGraphicsExtractor graphics, Vector2f cursorPosOutput, CallbackInfo ci) {
+	@Inject(method = "extractSignText", at = @At("RETURN"))
+	private void renderReturn(GuiGraphicsExtractor graphics, Vector2f cursorPosOutput, CallbackInfo ci) {
 		if (doumi$prevMessage == null) return;
 		TextFieldHelperAccessor signFieldAccessor = (TextFieldHelperAccessor) signField;
 		messages[line] = doumi$prevMessage;

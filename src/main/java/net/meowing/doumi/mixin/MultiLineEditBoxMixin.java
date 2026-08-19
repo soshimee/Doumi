@@ -63,8 +63,8 @@ public class MultiLineEditBoxMixin {
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
 	}
 
-	@Inject(method = "extractContents", at = @At("TAIL"))
-	private void renderTail(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+	@Inject(method = "extractContents", at = @At("RETURN"))
+	private void renderReturn(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
 		if (doumi$prevValue == null) return;
 		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
 		textFieldAccessor.doumi$setValue(doumi$prevValue);
