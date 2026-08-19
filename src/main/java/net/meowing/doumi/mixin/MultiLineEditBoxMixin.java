@@ -42,9 +42,12 @@ public class MultiLineEditBoxMixin {
 		int selectCursor = textFieldAccessor.doumi$getSelectCursor();
 		int minPos = Math.min(cursor, selectCursor);
 		int maxPos = Math.max(cursor, selectCursor);
-		String formatted = new StringBuilder(event.fullText()).insert(event.caretPosition(), "§n").insert(0, "§n").append("§r").toString();
-		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, formatted).toString();
-		doumi$preeditPos = event.caretPosition() + minPos + 2;
+		int pos = event.caretPosition() + minPos;
+		StringBuilder formatted = new StringBuilder(event.fullText());
+		if (pos < value.length() - (maxPos - minPos) + event.fullText().length()) formatted.insert(event.caretPosition(), "§n").append("§r");
+		formatted.insert(0, "§n");
+		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, formatted.toString()).toString();
+		doumi$preeditPos = pos + 2;
 	}
 
 	@Inject(method = "extractContents", at = @At("HEAD"))
