@@ -1,5 +1,7 @@
 package net.meowing.doumi.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
@@ -11,7 +13,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(AbstractSignEditScreen.class)
@@ -20,12 +21,6 @@ public class AbstractSignEditScreenMixin {
 	private String doumi$preeditText = null;
 	@Unique
 	private int doumi$preeditPos = -1;
-	@Unique
-	private String doumi$prevMessage = null;
-	@Unique
-	private int doumi$prevCursorPos = -1;
-	@Unique
-	private int doumi$prevSelectionPos = -1;
 
 	@Final
 	@Shadow
@@ -55,28 +50,22 @@ public class AbstractSignEditScreenMixin {
 		doumi$preeditPos = pos + 2;
 	}
 
-	@Inject(method = "extractSignText", at = @At("HEAD"))
-	private void renderHead(GuiGraphicsExtractor graphics, Vector2f cursorPosOutput, CallbackInfo ci) {
-		if (doumi$preeditText == null) return;
+	@WrapMethod(method = "extractSignText")
+	private void render(GuiGraphicsExtractor graphics, Vector2f cursorPosOutput, Operation<Void> original) {
+		if (doumi$preeditText == null) {
+			original.call(graphics, cursorPosOutput);
+			return;
+		}
 		TextFieldHelperAccessor signFieldAccessor = (TextFieldHelperAccessor) signField;
-		String message = messages[line];
-		int cursorPos = signFieldAccessor.doumi$getCursorPos();
-		int selectionPos = signFieldAccessor.doumi$getSelectionPos();
-		doumi$prevMessage = message;
-		doumi$prevCursorPos = cursorPos;
-		doumi$prevSelectionPos = selectionPos;
+		String prevMessage = messages[line];
+		int prevCursorPos = signFieldAccessor.doumi$getCursorPos();
+		int prevSelectionPos = signFieldAccessor.doumi$getSelectionPos();
 		messages[line] = doumi$preeditText;
 		signFieldAccessor.doumi$setCursorPos(doumi$preeditPos);
 		signFieldAccessor.doumi$setSelectionPos(doumi$preeditPos);
-	}
-
-	@Inject(method = "extractSignText", at = @At("RETURN"))
-	private void renderReturn(GuiGraphicsExtractor graphics, Vector2f cursorPosOutput, CallbackInfo ci) {
-		if (doumi$prevMessage == null) return;
-		TextFieldHelperAccessor signFieldAccessor = (TextFieldHelperAccessor) signField;
-		messages[line] = doumi$prevMessage;
-		signFieldAccessor.doumi$setCursorPos(doumi$prevCursorPos);
-		signFieldAccessor.doumi$setSelectionPos(doumi$prevSelectionPos);
-		doumi$prevMessage = null;
+		original.call(graphics, cursorPosOutput);
+		messages[line] = prevMessage;
+		signFieldAccessor.doumi$setCursorPos(prevCursorPos);
+		signFieldAccessor.doumi$setSelectionPos(prevSelectionPos);
 	}
 }
