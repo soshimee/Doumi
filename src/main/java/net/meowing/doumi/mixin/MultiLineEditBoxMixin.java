@@ -59,10 +59,13 @@ public class MultiLineEditBoxMixin {
 		textFieldAccessor.doumi$setCursor(doumi$preeditPos);
 		textFieldAccessor.doumi$setSelectCursor(doumi$preeditPos);
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
-		original.call(graphics, mouseX, mouseY, a);
-		textFieldAccessor.doumi$setValue(prevValue);
-		textFieldAccessor.doumi$setCursor(prevCursor);
-		textFieldAccessor.doumi$setSelectCursor(prevSelectCursor);
-		textFieldAccessor.doumi$invokeReflowDisplayLines();
+		try {
+			original.call(graphics, mouseX, mouseY, a);
+		} finally {
+			textFieldAccessor.doumi$setValue(prevValue);
+			textFieldAccessor.doumi$setCursor(prevCursor);
+			textFieldAccessor.doumi$setSelectCursor(prevSelectCursor);
+			textFieldAccessor.doumi$invokeReflowDisplayLines();
+		}
 	}
 }

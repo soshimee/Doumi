@@ -63,10 +63,13 @@ public abstract class EditBoxMixin {
 		cursorPos = doumi$preeditPos;
 		highlightPos = doumi$preeditPos;
 		scrollTo(doumi$preeditPos);
-		original.call(graphics, mouseX, mouseY, a);
-		value = prevValue;
-		cursorPos = prevCursorPos;
-		highlightPos = prevHighlightPos;
+		try {
+			original.call(graphics, mouseX, mouseY, a);
+		} finally {
+			value = prevValue;
+			cursorPos = prevCursorPos;
+			highlightPos = prevHighlightPos;
+		}
 	}
 
 	@WrapMethod(method = "updateTextPosition")
@@ -77,8 +80,11 @@ public abstract class EditBoxMixin {
 		}
 		String prevValue = value;
 		value = doumi$preeditText;
-		original.call();
-		value = prevValue;
+		try {
+			original.call();
+		} finally {
+			value = prevValue;
+		}
 	}
 
 	@WrapOperation(method = "extractWidgetRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;applyFormat(Ljava/lang/String;I)Lnet/minecraft/util/FormattedCharSequence;"))

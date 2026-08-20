@@ -64,9 +64,12 @@ public class AbstractSignEditScreenMixin {
 		messages[line] = doumi$preeditText;
 		signFieldAccessor.doumi$setCursorPos(doumi$preeditPos);
 		signFieldAccessor.doumi$setSelectionPos(doumi$preeditPos);
-		original.call(graphics, cursorPosOutput);
-		messages[line] = prevMessage;
-		signFieldAccessor.doumi$setCursorPos(prevCursorPos);
-		signFieldAccessor.doumi$setSelectionPos(prevSelectionPos);
+		try {
+			original.call(graphics, cursorPosOutput);
+		} finally {
+			messages[line] = prevMessage;
+			signFieldAccessor.doumi$setCursorPos(prevCursorPos);
+			signFieldAccessor.doumi$setSelectionPos(prevSelectionPos);
+		}
 	}
 }
