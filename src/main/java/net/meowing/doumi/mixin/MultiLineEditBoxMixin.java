@@ -1,5 +1,7 @@
 package net.meowing.doumi.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.MultilineTextField;
@@ -10,7 +12,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MultiLineEditBox.class)
@@ -19,12 +20,6 @@ public class MultiLineEditBoxMixin {
 	private String doumi$preeditText = null;
 	@Unique
 	private int doumi$preeditPos = -1;
-	@Unique
-	private String doumi$prevValue = null;
-	@Unique
-	private int doumi$prevCursor = -1;
-	@Unique
-	private int doumi$prevSelectCursor = -1;
 
 	@Final
 	@Shadow
@@ -50,30 +45,24 @@ public class MultiLineEditBoxMixin {
 		doumi$preeditPos = pos + 2;
 	}
 
-	@Inject(method = "extractContents", at = @At("HEAD"))
-	private void renderHead(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-		if (doumi$preeditText == null) return;
+	@WrapMethod(method = "extractContents")
+	private void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, Operation<Void> original) {
+		if (doumi$preeditText == null) {
+			original.call(graphics, mouseX, mouseY, a);
+			return;
+		}
 		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
-		String value = textFieldAccessor.doumi$getValue();
-		int cursor = textFieldAccessor.doumi$getCursor();
-		int selectCursor = textFieldAccessor.doumi$getSelectCursor();
-		doumi$prevValue = value;
-		doumi$prevCursor = cursor;
-		doumi$prevSelectCursor = selectCursor;
+		String prevValue = textFieldAccessor.doumi$getValue();
+		int prevCursor = textFieldAccessor.doumi$getCursor();
+		int prevSelectCursor = textFieldAccessor.doumi$getSelectCursor();
 		textFieldAccessor.doumi$setValue(doumi$preeditText);
 		textFieldAccessor.doumi$setCursor(doumi$preeditPos);
 		textFieldAccessor.doumi$setSelectCursor(doumi$preeditPos);
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
-	}
-
-	@Inject(method = "extractContents", at = @At("RETURN"))
-	private void renderReturn(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-		if (doumi$prevValue == null) return;
-		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
-		textFieldAccessor.doumi$setValue(doumi$prevValue);
-		textFieldAccessor.doumi$setCursor(doumi$prevCursor);
-		textFieldAccessor.doumi$setSelectCursor(doumi$prevSelectCursor);
+		original.call(graphics, mouseX, mouseY, a);
+		textFieldAccessor.doumi$setValue(prevValue);
+		textFieldAccessor.doumi$setCursor(prevCursor);
+		textFieldAccessor.doumi$setSelectCursor(prevSelectCursor);
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
-		doumi$prevValue = null;
 	}
 }
