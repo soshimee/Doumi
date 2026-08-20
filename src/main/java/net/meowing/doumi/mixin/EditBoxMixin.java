@@ -28,8 +28,6 @@ public abstract class EditBoxMixin {
 	@Unique
 	private int doumi$prevHighlightPos = -1;
 	@Unique
-	private int doumi$prevDisplayPos = -1;
-	@Unique
 	private int doumi$preeditStart = -1;
 	@Unique
 	private int doumi$preeditEnd = -1;
@@ -40,8 +38,6 @@ public abstract class EditBoxMixin {
 	private int cursorPos;
 	@Shadow
 	private int highlightPos;
-	@Shadow
-	private int displayPos;
 
 	@Shadow
 	protected abstract void scrollTo(int pos);
@@ -66,7 +62,6 @@ public abstract class EditBoxMixin {
 		doumi$prevValue = value;
 		doumi$prevCursorPos = cursorPos;
 		doumi$prevHighlightPos = highlightPos;
-		doumi$prevDisplayPos = displayPos;
 		value = doumi$preeditText;
 		cursorPos = doumi$preeditPos;
 		highlightPos = doumi$preeditPos;
@@ -79,7 +74,20 @@ public abstract class EditBoxMixin {
 		value = doumi$prevValue;
 		cursorPos = doumi$prevCursorPos;
 		highlightPos = doumi$prevHighlightPos;
-		displayPos = doumi$prevDisplayPos;
+		doumi$prevValue = null;
+	}
+
+	@Inject(method = "updateTextPosition", at = @At("HEAD"))
+	private void updateTextPositionHead(CallbackInfo ci) {
+		if (doumi$preeditText == null) return;
+		doumi$prevValue = value;
+		value = doumi$preeditText;
+	}
+
+	@Inject(method = "updateTextPosition", at = @At("RETURN"))
+	private void updateTextPositionReturn(CallbackInfo ci) {
+		if (doumi$prevValue == null) return;
+		value = doumi$prevValue;
 		doumi$prevValue = null;
 	}
 
