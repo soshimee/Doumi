@@ -87,9 +87,9 @@ public abstract class EditBoxMixin {
 		}
 	}
 
-	@WrapOperation(method = "extractWidgetRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/EditBox;applyFormat(Ljava/lang/String;I)Lnet/minecraft/util/FormattedCharSequence;"))
-	private FormattedCharSequence renderStyle(EditBox instance, String text, int offset, Operation<FormattedCharSequence> original) {
-		FormattedCharSequence baseSequence = original.call(instance, text, offset);
+	@WrapMethod(method = "applyFormat")
+	private FormattedCharSequence renderStyle(String text, int offset, Operation<FormattedCharSequence> original) {
+		FormattedCharSequence baseSequence = original.call(text, offset);
 		if (doumi$preeditText == null) return baseSequence;
 		int textLength = text.length();
 		int segmentEnd = offset + textLength;
