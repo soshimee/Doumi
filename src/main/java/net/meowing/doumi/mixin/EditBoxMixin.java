@@ -44,7 +44,7 @@ public abstract class EditBoxMixin {
 		int minPos = Math.min(cursorPos, highlightPos);
 		int maxPos = Math.max(cursorPos, highlightPos);
 		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, event.fullText()).toString();
-		doumi$preeditPos = Math.min(cursorPos, highlightPos) + event.caretPosition();
+		doumi$preeditPos = minPos + event.caretPosition();
 		doumi$preeditStart = minPos;
 		doumi$preeditEnd = minPos + event.fullText().length();
 	}
