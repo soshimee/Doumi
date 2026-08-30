@@ -3,9 +3,13 @@
 	"id": "doumi",
 	"version": "${version}",
 	"name": "Doumi",
-	"description": "",
-	"authors": [],
-	"contact": {},
+	"description": "Draw IME preedit inline",
+	"authors": ["catcake43"],
+	"contact": {
+		"email": "catcake43@meowing.net",
+		"issues": "https://github.com/soshimee/Doumi/issues",
+		"sources": "https://github.com/soshimee/Doumi"
+	},
 	"license": "GPL-3.0-or-later",
 	"icon": "assets/doumi/icon.png",
 	"environment": "client",
