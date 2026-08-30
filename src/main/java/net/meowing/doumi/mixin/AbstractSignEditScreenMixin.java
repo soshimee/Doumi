@@ -42,12 +42,16 @@ public class AbstractSignEditScreenMixin {
 		int selectionPos = signFieldAccessor.doumi$getSelectionPos();
 		int minPos = Math.min(cursorPos, selectionPos);
 		int maxPos = Math.max(cursorPos, selectionPos);
-		int pos = event.caretPosition() + minPos;
-		StringBuilder formatted = new StringBuilder(event.fullText());
-		if (pos < message.length() - (maxPos - minPos) + event.fullText().length()) formatted.insert(event.caretPosition(), "§n").append("§r");
-		formatted.insert(0, "§n");
-		doumi$preeditText = new StringBuilder(message).replace(minPos, maxPos, formatted.toString()).toString();
-		doumi$preeditPos = pos + 2;
+		StringBuilder before = new StringBuilder();
+		String focused = event.blocks().get(event.focusedBlock());
+		StringBuilder after = new StringBuilder();
+		for (int i = 0; i < event.focusedBlock(); ++i) before.append(event.blocks().get(i));
+		for (int i = event.focusedBlock() + 1; i < event.blocks().size(); ++i) after.append(event.blocks().get(i));
+		int bonus = 0;
+		if (event.caretPosition() > before.length()) bonus += 2;
+		if (event.caretPosition() >= before.length() + focused.length()) bonus += 2;
+		doumi$preeditText = new StringBuilder(message).replace(minPos, maxPos, before + "§n" + focused + "§r" + after).toString();
+		doumi$preeditPos = event.caretPosition() + minPos + bonus;
 	}
 
 	@WrapMethod(method = "extractSignText")
