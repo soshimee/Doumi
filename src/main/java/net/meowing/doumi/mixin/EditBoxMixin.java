@@ -43,10 +43,12 @@ public abstract class EditBoxMixin {
 		}
 		int minPos = Math.min(cursorPos, highlightPos);
 		int maxPos = Math.max(cursorPos, highlightPos);
+		int offset = 0;
+		for (int i = 0; i < event.focusedBlock(); ++i) offset += event.blocks().get(i).length();
 		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, event.fullText()).toString();
 		doumi$preeditPos = minPos + event.caretPosition();
-		doumi$preeditStart = minPos;
-		doumi$preeditEnd = minPos + event.fullText().length();
+		doumi$preeditStart = minPos + offset;
+		doumi$preeditEnd = doumi$preeditStart + event.blocks().get(event.focusedBlock()).length();
 	}
 
 	@WrapMethod(method = "extractWidgetRenderState")
