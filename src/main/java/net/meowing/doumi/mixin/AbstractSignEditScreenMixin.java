@@ -42,16 +42,18 @@ public class AbstractSignEditScreenMixin {
 		int selectionPos = signFieldAccessor.doumi$getSelectionPos();
 		int minPos = Math.min(cursorPos, selectionPos);
 		int maxPos = Math.max(cursorPos, selectionPos);
-		StringBuilder before = new StringBuilder();
-		String focused = event.blocks().get(event.focusedBlock());
-		StringBuilder after = new StringBuilder();
-		for (int i = 0; i < event.focusedBlock(); ++i) before.append(event.blocks().get(i));
-		for (int i = event.focusedBlock() + 1; i < event.blocks().size(); ++i) after.append(event.blocks().get(i));
-		int bonus = 0;
-		if (event.caretPosition() > before.length()) bonus += 2;
-		if (event.caretPosition() >= before.length() + focused.length()) bonus += 2;
-		doumi$preeditText = new StringBuilder(message).replace(minPos, maxPos, before + "§n" + focused + "§r" + after).toString();
-		doumi$preeditPos = event.caretPosition() + minPos + bonus;
+		int offset = event.caretPosition();
+		StringBuilder formatted = new StringBuilder();
+		for (int i = 0; i < event.focusedBlock(); ++i) formatted.append(event.blocks().get(i));
+		boolean isAfter = offset > formatted.length();
+		if (isAfter) offset += 2;
+		formatted.append("§n").append(event.blocks().get(event.focusedBlock()));
+		if (offset >= formatted.length()) offset += 2;
+		else if (isAfter) formatted.insert(offset, "§n");
+		formatted.append("§r");
+		for (int i = event.focusedBlock() + 1; i < event.blocks().size(); ++i) formatted.append(event.blocks().get(i));
+		doumi$preeditText = new StringBuilder(message).replace(minPos, maxPos, formatted.toString()).toString();
+		doumi$preeditPos = minPos + offset;
 	}
 
 	@WrapMethod(method = "extractSignText")
