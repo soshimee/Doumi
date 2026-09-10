@@ -2,6 +2,7 @@ package net.meowing.doumi.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.meowing.doumi.misc.IPreeditExtra;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
@@ -20,7 +21,9 @@ public class AbstractSignEditScreenMixin {
 	@Unique
 	private String doumi$preeditText = null;
 	@Unique
-	private int doumi$preeditPos = -1;
+	private int doumi$selectionStart = -1;
+	@Unique
+	private int doumi$selectionEnd = -1;
 
 	@Final
 	@Shadow
@@ -37,24 +40,22 @@ public class AbstractSignEditScreenMixin {
 			doumi$preeditText = null;
 			return;
 		}
+		IPreeditExtra eventExtra = (IPreeditExtra) (Object) event;
 		TextFieldHelperAccessor signFieldAccessor = (TextFieldHelperAccessor) signField;
 		String message = messages[line];
 		int cursorPos = signFieldAccessor.doumi$getCursorPos();
 		int selectionPos = signFieldAccessor.doumi$getSelectionPos();
 		int minPos = Math.min(cursorPos, selectionPos);
 		int maxPos = Math.max(cursorPos, selectionPos);
-		int offset = event.caretPosition();
-		StringBuilder formatted = new StringBuilder();
-		for (int i = 0; i < event.focusedBlock(); ++i) formatted.append(event.blocks().get(i));
-		boolean isAfter = offset > formatted.length();
-		if (isAfter) offset += 2;
-		formatted.append("§n").append(event.blocks().get(event.focusedBlock()));
-		if (offset >= formatted.length()) offset += 2;
-		else if (isAfter) formatted.insert(offset, "§n");
-		formatted.append("§r");
-		for (int i = event.focusedBlock() + 1; i < event.blocks().size(); ++i) formatted.append(event.blocks().get(i));
+		int pos = eventExtra.doumi$getSelectionStart() + minPos;
+		StringBuilder formatted = new StringBuilder(event.fullText());
+		if (pos < message.length() - (maxPos - minPos) + event.fullText().length()) formatted.insert(eventExtra.doumi$getSelectionStart(), "§n").append("§r");
+		formatted.insert(0, "§n");
+		int selectionOffset = eventExtra.doumi$getSelectionLength();
+		if (selectionOffset > 0) selectionOffset += 2;
 		doumi$preeditText = new StringBuilder(message).replace(minPos, maxPos, formatted.toString()).toString();
-		doumi$preeditPos = minPos + offset;
+		doumi$selectionStart = pos + 2;
+		doumi$selectionEnd = doumi$selectionStart + selectionOffset;
 	}
 
 	@WrapMethod(method = "extractSignText")
@@ -68,8 +69,8 @@ public class AbstractSignEditScreenMixin {
 		int prevCursorPos = signFieldAccessor.doumi$getCursorPos();
 		int prevSelectionPos = signFieldAccessor.doumi$getSelectionPos();
 		messages[line] = doumi$preeditText;
-		signFieldAccessor.doumi$setCursorPos(doumi$preeditPos);
-		signFieldAccessor.doumi$setSelectionPos(doumi$preeditPos);
+		signFieldAccessor.doumi$setCursorPos(doumi$selectionStart);
+		signFieldAccessor.doumi$setSelectionPos(doumi$selectionEnd);
 		try {
 			original.call(graphics, cursorPosOutput);
 		} finally {

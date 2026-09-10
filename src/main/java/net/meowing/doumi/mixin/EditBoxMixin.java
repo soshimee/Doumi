@@ -2,6 +2,7 @@ package net.meowing.doumi.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.meowing.doumi.misc.IPreeditExtra;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.PreeditEvent;
@@ -19,7 +20,9 @@ public abstract class EditBoxMixin {
 	@Unique
 	private String doumi$preeditText = null;
 	@Unique
-	private int doumi$preeditPos = -1;
+	private int doumi$selectionStart = -1;
+	@Unique
+	private int doumi$selectionEnd = -1;
 	@Unique
 	private int doumi$preeditStart = -1;
 	@Unique
@@ -41,14 +44,14 @@ public abstract class EditBoxMixin {
 			doumi$preeditText = null;
 			return;
 		}
+		IPreeditExtra eventExtra = (IPreeditExtra) (Object) event;
 		int minPos = Math.min(cursorPos, highlightPos);
 		int maxPos = Math.max(cursorPos, highlightPos);
-		int offset = 0;
-		for (int i = 0; i < event.focusedBlock(); ++i) offset += event.blocks().get(i).length();
 		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, event.fullText()).toString();
-		doumi$preeditPos = minPos + event.caretPosition();
-		doumi$preeditStart = minPos + offset;
-		doumi$preeditEnd = doumi$preeditStart + event.blocks().get(event.focusedBlock()).length();
+		doumi$selectionStart = minPos + eventExtra.doumi$getSelectionStart();
+		doumi$selectionEnd = doumi$selectionStart + eventExtra.doumi$getSelectionLength();
+		doumi$preeditStart = minPos;
+		doumi$preeditEnd = doumi$preeditStart + event.fullText().length();
 	}
 
 	@WrapMethod(method = "extractWidgetRenderState")
@@ -61,9 +64,9 @@ public abstract class EditBoxMixin {
 		int prevCursorPos = cursorPos;
 		int prevHighlightPos = highlightPos;
 		value = doumi$preeditText;
-		cursorPos = doumi$preeditPos;
-		highlightPos = doumi$preeditPos;
-		scrollTo(doumi$preeditPos);
+		cursorPos = doumi$selectionStart;
+		highlightPos = doumi$selectionEnd;
+		scrollTo(doumi$selectionStart);
 		try {
 			original.call(graphics, mouseX, mouseY, a);
 		} finally {
