@@ -11,18 +11,23 @@ public record PreeditInfo(String text, int pos, int start, int end) {
 
 	public PreeditInfo applyInlineStyle() {
 		StringBuilder sb = new StringBuilder();
+		int newPos = 0;
 		for (int i = 0; i < start; ++i) {
 			sb.append(text.charAt(i));
+			if (pos > i) ++newPos;
 		}
 		for (int i = start; i < end; ++i) {
 			sb.append("§n");
 			sb.append(text.charAt(i));
+			if (pos > i) newPos += 3;
 		}
 		sb.append("§r");
+		if (pos >= end) newPos += 2;
 		for (int i = end; i < text.length(); ++i) {
 			sb.append(text.charAt(i));
+			if (pos > i) ++newPos;
 		}
-		return new PreeditInfo(sb.toString(), (pos - start) * 3 + start, start, (end - start) * 3 + start + 2);
+		return new PreeditInfo(sb.toString(), newPos, start, (end - start) * 3 + start + 2);
 	}
 
 	public PreeditInfo applyToText(String existingText, int pos1, int pos2) {
