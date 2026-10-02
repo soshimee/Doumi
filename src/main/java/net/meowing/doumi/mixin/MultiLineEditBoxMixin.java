@@ -2,6 +2,7 @@ package net.meowing.doumi.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.meowing.doumi.utils.PreeditInfo;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.MultilineTextField;
@@ -17,9 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MultiLineEditBox.class)
 public class MultiLineEditBoxMixin {
 	@Unique
-	private String doumi$preeditText = null;
-	@Unique
-	private int doumi$preeditPos = -1;
+	private PreeditInfo doumi$preeditInfo = null;
 
 	@Final
 	@Shadow
@@ -28,32 +27,19 @@ public class MultiLineEditBoxMixin {
 	@Inject(method = "preeditUpdated", at = @At("HEAD"))
 	private void updatePreedit(PreeditEvent event, CallbackInfoReturnable<Boolean> cir) {
 		if (event == null) {
-			doumi$preeditText = null;
+			doumi$preeditInfo = null;
 			return;
 		}
 		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
 		String value = textFieldAccessor.doumi$getValue();
 		int cursor = textFieldAccessor.doumi$getCursor();
 		int selectCursor = textFieldAccessor.doumi$getSelectCursor();
-		int minPos = Math.min(cursor, selectCursor);
-		int maxPos = Math.max(cursor, selectCursor);
-		int offset = event.caretPosition();
-		StringBuilder formatted = new StringBuilder();
-		for (int i = 0; i < event.focusedBlock(); ++i) formatted.append(event.blocks().get(i));
-		boolean isAfter = offset > formatted.length();
-		if (isAfter) offset += 2;
-		formatted.append("§n").append(event.blocks().get(event.focusedBlock()));
-		if (offset >= formatted.length()) offset += 2;
-		else if (isAfter) formatted.insert(offset, "§n");
-		formatted.append("§r");
-		for (int i = event.focusedBlock() + 1; i < event.blocks().size(); ++i) formatted.append(event.blocks().get(i));
-		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, formatted.toString()).toString();
-		doumi$preeditPos = minPos + offset;
+		doumi$preeditInfo = PreeditInfo.fromPreeditEvent(event).applyInlineStyle().applyToText(value, cursor, selectCursor);
 	}
 
 	@WrapMethod(method = "extractContents")
 	private void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, Operation<Void> original) {
-		if (doumi$preeditText == null) {
+		if (doumi$preeditInfo == null) {
 			original.call(graphics, mouseX, mouseY, a);
 			return;
 		}
@@ -61,9 +47,9 @@ public class MultiLineEditBoxMixin {
 		String prevValue = textFieldAccessor.doumi$getValue();
 		int prevCursor = textFieldAccessor.doumi$getCursor();
 		int prevSelectCursor = textFieldAccessor.doumi$getSelectCursor();
-		textFieldAccessor.doumi$setValue(doumi$preeditText);
-		textFieldAccessor.doumi$setCursor(doumi$preeditPos);
-		textFieldAccessor.doumi$setSelectCursor(doumi$preeditPos);
+		textFieldAccessor.doumi$setValue(doumi$preeditInfo.text());
+		textFieldAccessor.doumi$setCursor(doumi$preeditInfo.pos());
+		textFieldAccessor.doumi$setSelectCursor(doumi$preeditInfo.pos());
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
 		try {
 			original.call(graphics, mouseX, mouseY, a);

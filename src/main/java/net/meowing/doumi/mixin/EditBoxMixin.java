@@ -2,6 +2,7 @@ package net.meowing.doumi.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.meowing.doumi.utils.PreeditInfo;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.PreeditEvent;
@@ -17,13 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EditBox.class)
 public abstract class EditBoxMixin {
 	@Unique
-	private String doumi$preeditText = null;
-	@Unique
-	private int doumi$preeditPos = -1;
-	@Unique
-	private int doumi$preeditStart = -1;
-	@Unique
-	private int doumi$preeditEnd = -1;
+	private PreeditInfo doumi$preeditInfo = null;
 
 	@Shadow
 	private String value;
@@ -38,32 +33,25 @@ public abstract class EditBoxMixin {
 	@Inject(method = "preeditUpdated", at = @At("HEAD"))
 	private void updatePreedit(PreeditEvent event, CallbackInfoReturnable<Boolean> cir) {
 		if (event == null) {
-			doumi$preeditText = null;
+			doumi$preeditInfo = null;
 			return;
 		}
-		int minPos = Math.min(cursorPos, highlightPos);
-		int maxPos = Math.max(cursorPos, highlightPos);
-		int offset = 0;
-		for (int i = 0; i < event.focusedBlock(); ++i) offset += event.blocks().get(i).length();
-		doumi$preeditText = new StringBuilder(value).replace(minPos, maxPos, event.fullText()).toString();
-		doumi$preeditPos = minPos + event.caretPosition();
-		doumi$preeditStart = minPos + offset;
-		doumi$preeditEnd = doumi$preeditStart + event.blocks().get(event.focusedBlock()).length();
+		doumi$preeditInfo = PreeditInfo.fromPreeditEvent(event).applyToText(value, cursorPos, highlightPos);
 	}
 
 	@WrapMethod(method = "extractWidgetRenderState")
 	private void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, Operation<Void> original) {
-		if (doumi$preeditText == null) {
+		if (doumi$preeditInfo == null) {
 			original.call(graphics, mouseX, mouseY, a);
 			return;
 		}
 		String prevValue = value;
 		int prevCursorPos = cursorPos;
 		int prevHighlightPos = highlightPos;
-		value = doumi$preeditText;
-		cursorPos = doumi$preeditPos;
-		highlightPos = doumi$preeditPos;
-		scrollTo(doumi$preeditPos);
+		value = doumi$preeditInfo.text();
+		cursorPos = doumi$preeditInfo.pos();
+		highlightPos = doumi$preeditInfo.pos();
+		scrollTo(doumi$preeditInfo.pos());
 		try {
 			original.call(graphics, mouseX, mouseY, a);
 		} finally {
@@ -75,12 +63,12 @@ public abstract class EditBoxMixin {
 
 	@WrapMethod(method = "updateTextPosition")
 	private void updateTextPosition(Operation<Void> original) {
-		if (doumi$preeditText == null) {
+		if (doumi$preeditInfo == null) {
 			original.call();
 			return;
 		}
 		String prevValue = value;
-		value = doumi$preeditText;
+		value = doumi$preeditInfo.text();
 		try {
 			original.call();
 		} finally {
@@ -91,15 +79,15 @@ public abstract class EditBoxMixin {
 	@WrapMethod(method = "applyFormat")
 	private FormattedCharSequence renderStyle(String text, int offset, Operation<FormattedCharSequence> original) {
 		FormattedCharSequence baseSequence = original.call(text, offset);
-		if (doumi$preeditText == null) return baseSequence;
+		if (doumi$preeditInfo == null) return baseSequence;
 		int textLength = text.length();
 		int segmentEnd = offset + textLength;
-		if (segmentEnd <= doumi$preeditStart || offset >= doumi$preeditEnd) return baseSequence;
+		if (segmentEnd <= doumi$preeditInfo.start() || offset >= doumi$preeditInfo.end()) return baseSequence;
 		Style styleModifier = Style.EMPTY.withUnderlined(true);
 		int[] index = new int[] {0};
 		return (sink) -> baseSequence.accept((charIndex, currentStyle, codePoint) -> {
 			int globalIndex = offset + index[0]++;
-			Style finalStyle = (globalIndex >= doumi$preeditStart && globalIndex < doumi$preeditEnd)
+			Style finalStyle = (globalIndex >= doumi$preeditInfo.start() && globalIndex < doumi$preeditInfo.end())
 				? currentStyle.applyTo(styleModifier)
 				: currentStyle;
 			return sink.accept(charIndex, finalStyle, codePoint);
