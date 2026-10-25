@@ -40,9 +40,9 @@ public abstract class EditBoxMixin {
 	}
 
 	@WrapMethod(method = "extractWidgetRenderState")
-	private void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, Operation<Void> original) {
+	private void render(GuiGraphicsExtractor graphics, Operation<Void> original) {
 		if (doumi$preeditInfo == null) {
-			original.call(graphics, mouseX, mouseY, a);
+			original.call(graphics);
 			return;
 		}
 		String prevValue = value;
@@ -53,7 +53,7 @@ public abstract class EditBoxMixin {
 		highlightPos = doumi$preeditInfo.pos();
 		scrollTo(doumi$preeditInfo.pos());
 		try {
-			original.call(graphics, mouseX, mouseY, a);
+			original.call(graphics);
 		} finally {
 			value = prevValue;
 			cursorPos = prevCursorPos;

@@ -43,7 +43,7 @@ public class IMEPreeditOverlayMixin {
 		),
 		cancellable = true
 	)
-	private void renderCancelDraw(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+	private void renderCancelDraw(GuiGraphicsExtractor graphics, CallbackInfo ci) {
 		ci.cancel();
 	}
 }

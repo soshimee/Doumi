@@ -38,9 +38,9 @@ public class MultiLineEditBoxMixin {
 	}
 
 	@WrapMethod(method = "extractContents")
-	private void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, Operation<Void> original) {
+	private void render(GuiGraphicsExtractor graphics, Operation<Void> original) {
 		if (doumi$preeditInfo == null) {
-			original.call(graphics, mouseX, mouseY, a);
+			original.call(graphics);
 			return;
 		}
 		MultilineTextFieldAccessor textFieldAccessor = (MultilineTextFieldAccessor) textField;
@@ -52,7 +52,7 @@ public class MultiLineEditBoxMixin {
 		textFieldAccessor.doumi$setSelectCursor(doumi$preeditInfo.pos());
 		textFieldAccessor.doumi$invokeReflowDisplayLines();
 		try {
-			original.call(graphics, mouseX, mouseY, a);
+			original.call(graphics);
 		} finally {
 			textFieldAccessor.doumi$setValue(prevValue);
 			textFieldAccessor.doumi$setCursor(prevCursor);
