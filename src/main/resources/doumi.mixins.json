@@ -6,10 +6,12 @@
 	"mixins": [
 	],
 	"client": [
+		"AbstractSignEditScreenMixin",
 		"EditBoxMixin",
 		"IMEPreeditOverlayMixin",
 		"MultiLineEditBoxMixin",
-		"MultilineTextFieldAccessor"
+		"MultilineTextFieldAccessor",
+		"TextFieldHelperAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

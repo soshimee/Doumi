@@ -1,0 +1,20 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "net.meowing.doumi.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+	],
+	"client": [
+		"EditBoxMixin",
+		"IMEPreeditOverlayMixin",
+		"MultiLineEditBoxMixin",
+		"MultilineTextFieldAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
