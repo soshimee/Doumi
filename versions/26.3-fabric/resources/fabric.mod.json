@@ -15,10 +15,10 @@
 	"environment": "client",
 	"entrypoints": {},
 	"mixins": [
-		"doumi.mixins.json"
+		"${mod_id}.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.17",
+		"fabricloader": "${loader_dependency}",
 		"minecraft": "${minecraft_dependency}"
 	}
 }

@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "${mod_id}",
+	"version": "${version}",
+	"name": "${mod_name}",
+	"description": "Draw IME preedit inline",
+	"authors": ["catcake43"],
+	"contact": {
+		"email": "catcake43@meowing.net",
+		"issues": "https://github.com/soshimee/Doumi/issues",
+		"sources": "https://github.com/soshimee/Doumi"
+	},
+	"license": "GPL-3.0-or-later",
+	"icon": "assets/doumi/icon.png",
+	"environment": "client",
+	"entrypoints": {},
+	"mixins": [
+		"${mod_id}.mixins.json"
+	],
+	"depends": {
+		"fabricloader": "${loader_dependency}",
+		"minecraft": "${minecraft_dependency}"
+	}
+}

@@ -1,9 +1,9 @@
 plugins {
-	id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
+	id("net.fabricmc.fabric-loom") version "1.19-SNAPSHOT"
 }
 
 version = "${property("mod_version")}+${sc.current.version}"
-base.archivesName = property("mod_id") as String
+base.archivesName = property("mod_id") as String + "-fabric"
 
 val targetJava = when {
 	sc.current.parsed >= "26.1" -> JavaVersion.VERSION_25
@@ -29,20 +29,13 @@ sourceSets.main {
 	resources.srcDir("resources")
 }
 
-tasks.withType<Copy>().configureEach {
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-tasks.withType<AbstractArchiveTask>().configureEach {
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
 tasks.processResources {
 	val props = mapOf(
 		"mod_id" to project.property("mod_id"),
 		"mod_name" to project.property("mod_name"),
 		"version" to project.version,
-		"minecraft_dependency" to project.property("minecraft_dependency"),
+		"loader_dependency" to project.property("loader_dependency"),
+		"minecraft_dependency" to project.property("minecraft_dependency")
 	)
 	inputs.properties(props)
 	filesMatching("fabric.mod.json") {

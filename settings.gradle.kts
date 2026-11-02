@@ -3,6 +3,7 @@ pluginManagement {
 		gradlePluginPortal()
 		mavenCentral()
 		maven("https://maven.fabricmc.net/")
+		maven("https://maven.neoforged.net/releases/")
 	}
 }
 
@@ -12,7 +13,16 @@ plugins {
 
 stonecutter {
 	create(rootProject) {
-		versions("26.3", "26.4-snapshot-6")
+		fun match(version: String, vararg loaders: String) {
+			for (loader in loaders) {
+				version("$version-$loader", version).buildscript("build.$loader.gradle.kts")
+			}
+		}
+
+		match("26.3", "fabric", "neoforge")
+		match("26.4-snapshot-6", "fabric")
+
+		vcsVersion = "26.3-fabric"
 	}
 }
 
