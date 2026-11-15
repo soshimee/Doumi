@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EditBoxMixin {
 	@Unique
 	private PreeditInfo doumi$preeditInfo = null;
+    @Unique
+    private boolean isDirty = false;
 
 	@Shadow
 	private String value;
@@ -30,8 +32,12 @@ public abstract class EditBoxMixin {
 	@Shadow
 	protected abstract void scrollTo(int pos);
 
-	@Inject(method = "preeditUpdated", at = @At("HEAD"))
+    @Shadow
+    public abstract void setValue(String value);
+
+    @Inject(method = "preeditUpdated", at = @At("HEAD"))
 	private void updatePreedit(PreeditEvent event, CallbackInfoReturnable<Boolean> cir) {
+        isDirty = true;
 		if (event == null) {
 			doumi$preeditInfo = null;
 			return;
@@ -48,6 +54,10 @@ public abstract class EditBoxMixin {
 		//?}
 	) {
 		if (doumi$preeditInfo == null) {
+            if (isDirty) {
+                this.setValue(value);
+                isDirty = false;
+            }
 			original.call(
 				//? if >=26.4-snapshot-5 {
 				/*graphics
@@ -60,7 +70,14 @@ public abstract class EditBoxMixin {
 		String prevValue = value;
 		int prevCursorPos = cursorPos;
 		int prevHighlightPos = highlightPos;
-		value = doumi$preeditInfo.text();
+
+        // Caxton caches glyph shape, and computing again should be expensive
+        if (isDirty) {
+            this.setValue(doumi$preeditInfo.text());
+            isDirty = false;
+        }
+        value = doumi$preeditInfo.text();
+
 		cursorPos = doumi$preeditInfo.pos();
 		highlightPos = doumi$preeditInfo.pos();
 		scrollTo(doumi$preeditInfo.pos());
